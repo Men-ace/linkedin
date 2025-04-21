@@ -63,14 +63,42 @@ export const login = async( req, res) => {
         const {username, password} = req.body
         // check if the user exists
         const user = await User.findOne({username})
+        if(!user){
+            return res.status(400).json({message: "invalid credentials"})
+        }
 
+        // check password
+       const isMatch=  bcrypt.compare(password, user.password)
+        if (!isMatch)
+            return res.status(400).json({message: "invalid credentials"})
 
+        // create and send token
+        const token = jwt.sign({userId: user._id}, process.env.JWT_SECRET, {expiresIn: "3d"})
 
+        await res.cookie("jwt-linkedin", token, {
+			httpOnly: true,
+			maxAge: 3 * 24 * 60 * 60 * 1000,
+			sameSite: "strict",
+			secure: process.env.NODE_ENV === "production",
+		});
 
-    } catch (error) {
-        
-    }
-}
+        res.json({ message: "Logged in successfully" });
+	} catch (error) {
+		console.error("Error in login controller:", error);
+		res.status(500).json({ message: "Server error" });
+	}
+};
+
 export const logout = ( req, res) => {
     res.clearCookie("jwt-token")
     res.json({message: "logged out successfully"})}
+
+
+export const getCurrentUser = async (req, res) =>{
+    try {
+        res.json(req.user)
+    } catch (error) {
+        console.log("Error in getCurrentUser controller:", error)
+        res.status(500).json({message: "server error"})
+    }
+}
