@@ -21,7 +21,7 @@ app.use("/api/v1/posts", postRoutes)
 app.use("/api/v1/notifications", notificationRoutes)
 app.use("/api/v1/connections", connectionRoute)
 
-
+//
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
     connectDB()
